@@ -22,6 +22,7 @@ module.exports = function getBabelPreset () {
       // https://github.com/facebookincubator/create-react-app/issues/2391
       [require.resolve('babel-plugin-transform-runtime'), {
         helpers: true,
+        polyfill: false,
         regenerator: true
       }],
     ],
