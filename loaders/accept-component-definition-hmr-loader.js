@@ -21,57 +21,62 @@ function getAcceptHotForComponent (componentName, relativePath) {
 
 function componentFilesHotWrapper () {
   if (window.__designer_components_hmr__) {
-    '__ACCEPT_CALLS__'
+    '__ACCEPT_CALL__'
   }
 }
 
-function getComponentsWithRelativePath (contextPath, componentTypes) {
-  const components = []
+function getComponentWithRelativePath (contextPath, componentTypes) {
+  let component
 
-  Object.keys(componentTypes).forEach((compName) => {
+  Object.keys(componentTypes).some((compName) => {
     const compType = componentTypes[compName]
-    let compModulePath
 
     if (!compType.directory) {
-      return
+      return false
     }
 
-    compModulePath = path.join(compType.directory, 'shared/index.js')
+    if (path.join(compType.directory, 'index.designer.js') === contextPath) {
+      component = compType
+      return true
+    }
 
-    components.push({
-      name: compName,
-      relativePath: path.relative(
-        contextPath,
-        compModulePath
-      )
-    })
+    return false
   })
 
-  return components
+  if (!component) {
+    return
+  }
+
+  const compModulePath = path.join(component.directory, 'shared/index.js')
+
+  component = {
+    name: component.name,
+    relativePath: `./${path.relative(
+      path.dirname(contextPath),
+      compModulePath
+    )}`
+  }
+
+  return component
 }
 
 module.exports = function(content) {
   const loaderOptions = loaderUtils.getOptions(this)
-  let components = []
+  let componentRelative
 
   if (loaderOptions && loaderOptions.componentTypes) {
-    components = getComponentsWithRelativePath(
-      path.dirname(this.resourcePath),
+    componentRelative = getComponentWithRelativePath(
+      this.resourcePath,
       loaderOptions.componentTypes
     )
   }
 
-  if (components.length === 0) {
-    return
+  if (!componentRelative) {
+    return content
   }
 
-  const acceptCalls = (
-    components
-    .map((comp) => getAcceptHotForComponent(comp.name, comp.relativePath))
-    .join('\n')
-  )
-
-  const wrapperFn = componentFilesHotWrapper.toString().replace(/'__ACCEPT_CALLS__'/g, acceptCalls)
+  const acceptCall = getAcceptHotForComponent(componentRelative.name, componentRelative.relativePath)
+  const wrapperFn = componentFilesHotWrapper.toString().replace(/'__ACCEPT_CALL__'/g, acceptCall)
 
   return (
     `
