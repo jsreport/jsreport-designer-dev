@@ -25,26 +25,18 @@ function componentFilesHotWrapper () {
   }
 }
 
-function getComponentsInPath (contextPath, componentsDirName) {
-  const componentsPath = path.join(contextPath, '../', componentsDirName)
-  const files = fs.readdirSync(componentsPath)
+function getComponentsWithRelativePath (contextPath, componentTypes) {
   const components = []
 
-  files.forEach((file) => {
-    let ext = path.extname(file)
-    let name
-
-    if (ext !== '.js' && ext !== '.jsx') {
-      return
-    }
-
-    name = file.slice(0, file.lastIndexOf('.') !== -1 ? file.lastIndexOf('.') : file.length)
+  Object.keys(componentTypes).forEach((compName) => {
+    const compType = componentTypes[compName]
+    const compModulePath = path.join(compType.directory, 'shared/index.js')
 
     components.push({
-      name,
+      compName,
       relativePath: path.relative(
         contextPath,
-        path.join(componentsPath, file)
+        compModulePath
       )
     })
   })
@@ -56,10 +48,10 @@ module.exports = function(content) {
   const loaderOptions = loaderUtils.getOptions(this)
   let components = []
 
-  if (loaderOptions && loaderOptions.componentsDirName) {
-    components = getComponentsInPath(
+  if (loaderOptions && loaderOptions.componentTypes) {
+    components = getComponentsWithRelativePath(
       path.dirname(this.resourcePath),
-      loaderOptions.componentsDirName
+      loaderOptions.componentTypes
     )
   }
 
