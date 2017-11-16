@@ -3,7 +3,7 @@ const path = require('path')
 const fs = require('fs')
 const loaderUtils = require('loader-utils');
 
-function getAcceptHotForComponent (relativePath, componentName) {
+function getAcceptHotForComponent (componentName, relativePath) {
   return (
     `
     module.hot.accept('${relativePath}', () => {
@@ -30,10 +30,16 @@ function getComponentsWithRelativePath (contextPath, componentTypes) {
 
   Object.keys(componentTypes).forEach((compName) => {
     const compType = componentTypes[compName]
-    const compModulePath = path.join(compType.directory, 'shared/index.js')
+    let compModulePath
+
+    if (!compType.directory) {
+      return
+    }
+
+    compModulePath = path.join(compType.directory, 'shared/index.js')
 
     components.push({
-      compName,
+      name: compName,
       relativePath: path.relative(
         contextPath,
         compModulePath
@@ -61,7 +67,7 @@ module.exports = function(content) {
 
   const acceptCalls = (
     components
-    .map((comp) => getAcceptHotForComponent(comp.relativePath, comp.name))
+    .map((comp) => getAcceptHotForComponent(comp.name, comp.relativePath))
     .join('\n')
   )
 
