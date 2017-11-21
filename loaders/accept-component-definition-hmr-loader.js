@@ -6,8 +6,8 @@ const loaderUtils = require('loader-utils');
 function getAcceptHotForComponent (componentName, relativePath) {
   return (
     `
-    module.hot.accept('${relativePath}', () => {
-      let ${componentName} = require('${relativePath}');
+    module.hot.accept('${relativePath}', function () {
+      var ${componentName} = require('${relativePath}');
 
       if (${componentName}.default) {
         ${componentName} = ${componentName}.default;
