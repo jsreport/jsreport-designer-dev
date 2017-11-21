@@ -57,6 +57,9 @@ function getComponentWithRelativePath (contextPath, componentTypes) {
     )}`
   }
 
+  // fixing path when windows is used
+  component.relativePath = component.relativePath.replace(/\\/g, '/')
+
   return component
 }
 
